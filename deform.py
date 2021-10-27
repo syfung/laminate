@@ -7,4 +7,4 @@ Created on Wed Oct 27 17:22:11 2021
 import numpy as np
 
 def deformation(abd_inv, load):
-    return lam.abd_inv().dot(load)
+    return abd_inv.dot(load)
