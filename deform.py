@@ -15,6 +15,7 @@ def strain(laminate, mid_plane_deformation):
         mid_ply_z.append((laminate.z_s[k][1] - laminate.z_s[k][0])/2)
     ply_deformation = np.empty([0,3])
     for z in mid_ply_z:
+        print(z)
         ply_deformation = np.append(ply_deformation,
                                     [mid_plane_deformation[0:3] + z * mid_plane_deformation[3:6]],
                                     axis=0)
