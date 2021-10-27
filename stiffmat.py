@@ -53,6 +53,7 @@ class Laminate:
             
         self.abd = self._abd_matrix()
     
+    @property
     def abd_inv(self):
         return np.linalg.inv(self.abd)
             
