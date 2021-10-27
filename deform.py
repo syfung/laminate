@@ -13,8 +13,9 @@ def strain(laminate, mid_plane_deformation):
     mid_ply_z = []
     for k in range(len(laminate.z_s)):
         print(laminate.z_s[k])
-        mid_ply_z.append((laminate.z_s[k][1] - laminate.z_s[k][0])/2)
+        mid_ply_z.append((laminate.z_s[k][1] - laminate.z_s[k][0])/2 + laminate.z_s[k][0])
     ply_deformation = np.empty([0,3])
+    mid_plane_deformation = np.array(mid_plane_deformation)
     for z in mid_ply_z:
         print(z)
         ply_deformation = np.append(ply_deformation,
