@@ -52,6 +52,9 @@ class Laminate:
             self.z_s.append((z_bot, z_top))
             
         self.abd = self._abd_matrix()
+    
+    def abd_inv(self):
+        return np.linalg.inv(self.abd)
             
     def _abd_matrix(self):
         a = np.zeros([3,3])
