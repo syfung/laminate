@@ -28,7 +28,7 @@ def stiffness_matrix(E_1, E_2, nu_12, G_12):
                       [0, 0, G_12]])
        return q
 
-def q_rotate(angle, q):
+def rotate_q(angle, q):
     t = transformation_matrix(angle)
     q_bar = np.linalg.inv(t) * q * np.linalg.inv(np.transpose(t))
     return q_bar, t
@@ -95,9 +95,11 @@ class Ply:
         self.angle = angle
         self.thickness = thickness
         self.q = stiffness_matrix(e_1, e_2, nu_12, g_12)
-        self.q_bar, self.t = q_rotate(self.angle, self.q)
+        self.q_bar, self.t = rotate_q(self.angle, self.q)
         
-        
+# =============================================================================
+# Test        
+# =============================================================================
 if __name__ == "__main__":
     np.set_printoptions(precision=4)
     p = Ply(30, 0.125, 131, 9, 0.22, 6)

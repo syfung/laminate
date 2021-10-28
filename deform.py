@@ -25,24 +25,35 @@ def strain_top_bottom_ply(laminate, mid_plane_deformation):
         ply_deformation.append((strain + z[0] * curvature, strain + z[1] * curvature))
     return ply_deformation
 
-def stress_mid_ply(laminate, mid_plane_deformation):
+def stress_mid_ply(laminate, mid_plane_deformation, local=False):
     strain = strain_mid_ply(laminate, mid_plane_deformation)
     stress = []
-    for k in range(len(laminate.plies)):
-        stress.append(laminate.plies[k].q_bar.dot(strain[k]))
+    if local:
+        for k in range(len(laminate.plies)):
+            stress.append(laminate.plies[k].t.dot(laminate.plies[k].q_bar.dot(strain[k])))
+    else:   
+        for k in range(len(laminate.plies)):
+            stress.append(laminate.plies[k].q_bar.dot(strain[k]))
     return stress
 
-def stress_top_bottom_ply(laminate, mid_plane_deformation):
+def stress_top_bottom_ply(laminate, mid_plane_deformation, local=False):
     strain = strain_top_bottom_ply(laminate, mid_plane_deformation)
     stress = []
-    for k in range(len(laminate.plies)):
-        stress.append((laminate.plies[k].q_bar.dot(strain[k][0]), laminate.plies[k].q_bar.dot(strain[k][1])))
+    if local:
+        for k in range(len(laminate.plies)):
+            s = (laminate.plies[k].t.dot(laminate.plies[k].q_bar.dot(strain[k][0])),
+                 laminate.plies[k].t.dot(laminate.plies[k].q_bar.dot(strain[k][1])))
+            stress.append(s)
+    else:
+        for k in range(len(laminate.plies)):
+            s = (laminate.plies[k].q_bar.dot(strain[k][0]), laminate.plies[k].q_bar.dot(strain[k][1]))
+            stress.append(s)
     return stress
         
 if __name__ == "__main__":
     import stiffmat
     import matplotlib.pyplot as plt
-    np.set_printoptions(precision=6)
+    np.set_printoptions(precision=5)
 
     # =============================================================================
     # Ply properties
@@ -63,6 +74,10 @@ if __name__ == "__main__":
     # Thickness
     t = 0.125 # mm
     
+    # Layup angle
+    a = [0, 0, 0, 90, 0, 0, 45, 0] # 45 increment
+    # a = [0, 0, 0, 90, 0, 0, 30, 0] # 30 increment
+    # a = [0, 0, 0, 75, 75, 45, 45, 45] # 15 increment
     # =============================================================================
     # Load Vector
     # =============================================================================
@@ -70,7 +85,7 @@ if __name__ == "__main__":
     print("Applied Load")
     print("({0[0]:2.2f}N/mm, {1[0]:2.2f}N/mm, {2[0]:2.2f}N/mm, {3[0]:2.2f}N, {4[0]:2.2f}N,{5[0]:2.2f}N).T\n".format(*np.array(load)))
     
-    lam = stiffmat.Laminate([0, 60, 0, 30], t, E1, E2, nu12, G12)
+    lam = stiffmat.Laminate(a, t, E1, E2, nu12, G12)
     print("ABD Matrix:")
     print(lam.abd)
     print("Unit:")
@@ -78,7 +93,7 @@ if __name__ == "__main__":
     
     mid_plane_deformation = deformation(lam.abd_inv, load)
     print("Mid plane deforamtion:")
-    print("({0[0]:2.4f} {1[0]:2.4f} {2[0]:2.4f} {3[0]:2.4f}1/mm {4[0]:2.4f}1/mm {5[0]:2.4f}1/mm).T\n".format(*np.array(mid_plane_deformation)))
+    print("({0[0]:2.4f} {1[0]:2.4f} {2[0]:2.4f} {3[0]:2.4f}1/mm {4[0]:2.4f}1/mm {5[0]:2.4f}1/mm).T".format(*np.array(mid_plane_deformation)))
     m_deform = mid_plane_deformation.copy()
     m_deform[3:6] = m_deform[3:6]*1000
     print("({0[0]:2.4f} {1[0]:2.4f} {2[0]:2.4f} {3[0]:2.4f}1/m {4[0]:2.4f}1/m {5[0]:2.2f}1/m).T\n".format(*np.array(m_deform)))
@@ -112,3 +127,22 @@ if __name__ == "__main__":
     plt.plot([s.item(2) for s in stress], lam.mid_ply_zs, "kx")
     ax = plt.gca()
     ax.invert_yaxis()
+    
+    print()
+    
+    stress_local = stress_mid_ply(lam, mid_plane_deformation, local=True)
+    stress_top_bottom_local = stress_top_bottom_ply(lam, mid_plane_deformation, local=True)
+    import failure
+    for s in stress_local:
+        print("Tsai-Wu Failed {}, with T = {}".format(*failure.tsai_wu(s, sigma_lp, sigma_ln, sigma_tp, sigma_tn, tau_lt)))
+    
+    print()
+    
+    for s in stress_local:
+        print("Tsai-Hill Failed {}, with T = {}".format(*failure.tsai_hill(s, sigma_lp, sigma_ln, sigma_tp, sigma_tn, tau_lt)))
+    
+    print()
+    
+    for s in list(sum(stress_top_bottom_local, ())):
+        print("Tsai-Wu Failed {}, with T = {}".format(*failure.tsai_wu(s, sigma_lp, sigma_ln, sigma_tp, sigma_tn, tau_lt)))
+    
