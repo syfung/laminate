@@ -35,10 +35,14 @@ def q_rotate(angle, q):
 
 class Laminate:
     def __init__(self, angles, thickness, e_l, e_t, nu_lt, g_lt):
+        self.angles = angles
         self.plies = []
         self.thicknesses = []
         self.z_s = []
         self.mid_ply_zs = []
+        
+        # Lazy Properties
+        self._abd_inv = None
         
         for angle in angles:
             p = Ply(angle, thickness, e_l, e_t, nu_lt, g_lt)
@@ -58,7 +62,9 @@ class Laminate:
     
     @property
     def abd_inv(self):
-        return np.linalg.inv(self.abd)
+        if not self._abd_inv:
+            self._abd_inv = np.linalg.inv(self.abd)
+        return self._abd_inv
             
     def _abd_matrix(self):
         a = np.zeros([3,3])

@@ -25,14 +25,14 @@ def strain_top_bottom_ply(laminate, mid_plane_deformation):
         ply_deformation.append((strain + z[0] * curvature, strain + z[1] * curvature))
     return ply_deformation
 
-def stree_mid_ply(laminate, mid_plane_deformation):
+def stress_mid_ply(laminate, mid_plane_deformation):
     strain = strain_mid_ply(laminate, mid_plane_deformation)
     stress = []
     for k in range(len(laminate.plies)):
         stress.append(laminate.plies[k].q_bar.dot(strain[k]))
     return stress
 
-def stree_top_bottom_ply(laminate, mid_plane_deformation):
+def stress_top_bottom_ply(laminate, mid_plane_deformation):
     strain = strain_top_bottom_ply(laminate, mid_plane_deformation)
     stress = []
     for k in range(len(laminate.plies)):
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     print("Applied Load")
     print("({0[0]:2.2f}N/mm, {1[0]:2.2f}N/mm, {2[0]:2.2f}N/mm, {3[0]:2.2f}N, {4[0]:2.2f}N,{5[0]:2.2f}N).T\n".format(*np.array(load)))
     
-    lam = stiffmat.Laminate([0,30,60,90], t, E1, E2, nu12, G12)
+    lam = stiffmat.Laminate([0, 60, 0, 30], t, E1, E2, nu12, G12)
     print("ABD Matrix:")
     print(lam.abd)
     print("Unit:")
@@ -91,8 +91,8 @@ if __name__ == "__main__":
     plt.plot(lam.mid_ply_zs, [s.item(0) for s in strain], "x")
     plt.plot(list(sum(lam.z_s, ())), [s.item(0) for s in (list(sum(strain_top_bottom, ())))])
     
-    stress = stree_mid_ply(lam, mid_plane_deformation)
-    stress_top_bottom = stree_top_bottom_ply(lam, mid_plane_deformation)
+    stress = stress_mid_ply(lam, mid_plane_deformation)
+    stress_top_bottom = stress_top_bottom_ply(lam, mid_plane_deformation)
     
     plt.figure()
     plt.subplot(1, 3, 1)
