@@ -38,6 +38,7 @@ class Laminate:
         self.plies = []
         self.thicknesses = []
         self.z_s = []
+        self.mid_ply_zs = []
         
         for angle in angles:
             p = Ply(angle, thickness, e_l, e_t, nu_lt, g_lt)
@@ -49,7 +50,9 @@ class Laminate:
         for k in range(len(angles)):
             z_top = sum(self.thicknesses[:k+1]) - self.h
             z_bot = sum(self.thicknesses[:k]) - self.h
+            
             self.z_s.append((z_bot, z_top))
+            self.mid_ply_zs.append((z_top - z_bot)/2 + z_bot)
             
         self.abd = self._abd_matrix()
     
